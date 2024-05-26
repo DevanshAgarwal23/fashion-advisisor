@@ -1,9 +1,25 @@
-import Image from "next/image";
+"use client"
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-    <div>Home Page!</div>
-    </main>
-  );
+    const session  = useSession();
+
+    const useRoute = useRouter()
+    console.log(session?.data?.user)
+    if (session?.data?.user) {
+        return (
+            <div>
+                <h1>Welcome </h1>
+                <button onClick={() => useRoute.push('/dashboard')}>Go to Dashboard</button>
+                <button onClick={() => useRoute.push('/api/auth/signout')}>Logout</button>
+            </div>
+        );
+    }
+
+    return (
+        <div>
+            <button onClick={() => useRoute.push('/api/auth/signin')}>Login with Google</button>
+        </div>
+    );
 }
