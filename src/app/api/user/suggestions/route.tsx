@@ -28,7 +28,10 @@ export async function GET(req: NextRequest) {
 
         console.log(user)
 
-        const suggestions = user.suggestions.map(suggestion => suggestion.text);
+        // const suggestions = user.suggestions.map(suggestion => suggestion.text);
+        const suggestions = user.suggestions;
+
+        console.log("nexxxttt::-----", suggestions)
         return NextResponse.json({ suggestions });
     } catch (error) {
         console.error('Error fetching user suggestions:', error);

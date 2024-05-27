@@ -19,6 +19,7 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(false);
     const [fashionAdvice, setFashionAdvice] = useState<string | null>(null);
     const [displayedText, setDisplayedText] = useState<string>('');
+    const [history, setHistory] = useState<any>(null);
   const speed = 10;
     useEffect(() => {
       if(fashionAdvice){
@@ -89,7 +90,6 @@ const Dashboard = () => {
         }
     };
 
-    console.log(suggestions)
 
     const storage = getStorage(app);
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,55 +143,60 @@ const Dashboard = () => {
             console.error('Error getting fashion suggestion:', error);
         }
     };
-
     return (
       <div  className="flex h-[calc(100vh-20vh)]  overflow-auto">
-      <SideNav />
+      <SideNav setHistory={setHistory} history={suggestions} />
        <div className="flex flex-1 m-8 flex-col md:flex-row">
         <div  className="md:w-1/4 align-center m-auto">
-        <div>
-          <div className='text-left pb-8 text-3xl font-light italic mt-2' style={{ fontFamily: 'freight-display-pro, serif !important' }}>Get Expert Fashion Advice by Uploading Your Image Now!</div>
-        </div>
-        <div>
-      <div
-        onDrop={handleDrop}
-        onDragOver={preventDefault}
-        onDragEnter={preventDefault}
-        onDragLeave={preventDefault}
-        className="w-full text-center m-auto max-w-3xl h-56 p-6 border-gray-300 rounded-lg"
-      >
-        <input
-          type="file"
-          accept="image/jpeg, image/png, image/jpg"
-          onChange={handleFileSelect}
-          className="hidden"
-          id="file-upload"
-        />
-        <label htmlFor="file-upload" className="text-center block">
-        <Image src="/upload.svg" alt="upload icon" width={20} height={20} className="m-auto" />
-          <p className="mb-2 text-gray-500 cursor-pointer">Drag & Drop or <span className="text-[#51233A] font-bold">browse</span></p>
-        </label>
-        {file ? (
-          <div className="relative mt-4">
-            <h4 className="text-gray-700 mb-8">Uploaded Image:</h4>
-            <img
-              src={URL.createObjectURL(file)}
-              alt="Uploaded Preview"
-              className=" max-w-full h-14 m-auto"
-            />
-            <button
-              onClick={handleRemoveFile}
-              className="absolute top-0 right-0 mt-2 mr-2"
-            >
-              <Image src="/next.svg" alt="X Icon" width={20} height={20} className="text-red-500" />
-            </button>
+       {history !== null && typeof history === 'object' && !Array.isArray(history) && history?.image?<div>
+       <Image width={250} height={250}  src={history?.image} alt="uploaded image" className="m-auto" />
+       </div>:(  <><div>
+            <div className='text-left pb-8 text-3xl font-light italic mt-2' style={{ fontFamily: 'freight-display-pro, serif !important' }}>Get Expert Fashion Advice by Uploading Your Image Now!</div>
           </div>
-        ) : <div className="text-small text-gray-300 mt-16">Your Image will be visible here</div>}
-      </div>
+          <div>
+        <div
+          onDrop={handleDrop}
+          onDragOver={preventDefault}
+          onDragEnter={preventDefault}
+          onDragLeave={preventDefault}
+          className="w-full text-center m-auto max-w-3xl h-56 p-6 border-gray-300 rounded-lg"
+        >
+          <input
+            type="file"
+            accept="image/jpeg, image/png, image/jpg"
+            onChange={handleFileSelect}
+            className="hidden"
+            id="file-upload"
+          />
+          <label htmlFor="file-upload" className="text-center block">
+          <Image src="/upload.svg" alt="upload icon" width={20} height={20} className="m-auto" />
+            <p className="mb-2 text-gray-500 cursor-pointer">Drag & Drop or <span className="text-[#51233A] font-bold">browse</span></p>
+          </label>
+          {file ? (
+            <div className="relative mt-4">
+              <h4 className="text-gray-700 mb-8">Uploaded Image:</h4>
+              <img
+                src={URL.createObjectURL(file)}
+                alt="Uploaded Preview"
+                className=" max-w-full h-14 m-auto"
+              />
+              <button
+                onClick={handleRemoveFile}
+                className="absolute top-0 right-0 mt-2 mr-2"
+              >
+                <Image src="/next.svg" alt="X Icon" width={20} height={20} className="text-red-500" />
+              </button>
+            </div>
+          ) : <div className="text-small text-gray-300 mt-16">Your Image will be visible here</div>}
         </div>
+          </div></> )}
         </div>
         <div className='m-8 text-center md:w-3/4'>
-            <div className='text-center m-auto'>
+          {history !== null && typeof history === 'object' && !Array.isArray(history) && history?.text 
+          ? <div className='whitespace-pre-wrap text-gray-500 text-justify italic py-2 px-4'>{history?.text}</div>
+          :
+          <>
+          <div className='text-center m-auto'>
                 <button
                   onClick={handleSubmit}
                   disabled={loading}
@@ -219,6 +224,8 @@ const Dashboard = () => {
                     </div>
                   </div>
                   )}
+            </>
+          }
             </div>
       </div>
     </div>
