@@ -26,7 +26,7 @@ const fetchCredits = async () => {
       console.error('Error fetching user credits:', error);
   }
 };
-console.log('vfdvfddvf', pathname, pathname==="/dashboard")
+// console.log('vfdvfddvf', pathname, pathname==="/dashboard")
 
   return (
     <nav className="bg-[#fefaf6] shadow-lg">

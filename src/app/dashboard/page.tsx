@@ -14,7 +14,7 @@ interface Suggestion {
 
 const Dashboard = () => {
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-    const [imageUrl, setImageUrl] = useState<string>('');
+    // const [imageUrl, setImageUrl] = useState<string>('');
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [fashionAdvice, setFashionAdvice] = useState<string | null>(null);
@@ -43,11 +43,12 @@ const Dashboard = () => {
       }
     }, []);
   
-    const handleFileSelect = (event) => {
-      const selectedFiles = Array.from(event.target.files);
-      if (selectedFiles.length > 0) {
-        setFile(selectedFiles[0]);
-      }
+    const handleFileSelect = (event : React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      setFile(file);
+      // if (selectedFiles.length > 0) {
+        
+      // }
     };
   
     const preventDefault = (event) => event.preventDefault();
@@ -56,21 +57,24 @@ const Dashboard = () => {
       setFile(null);
     };
     const handleSubmit = async () => {
+      console.log("inside submit")
       setFashionAdvice(null);
       setDisplayedText('');
-      if (!file) {
-        alert('Please upload an image.');
-        return;
-      }
+      // if (!file) {
+      //   alert('Please upload an image.');
+      //   return;
+      // }
   
-      setLoading(true);
+ 
+
+      await handleGetSuggestion()
   
       // Simulate API call for fashion advice generation
       // Replace this with your actual API call
-      setTimeout(() => {
-        setLoading(false);
-        setFashionAdvice(' Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from "de Finibus Bonorum et Malorum" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.');
-      }, 2000);
+      // setTimeout(() => {
+      //   setLoading(false);
+      //   setFashionAdvice(' Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from "de Finibus Bonorum et Malorum" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.');
+      // }, 2000);
     };
 
 
@@ -92,51 +96,83 @@ const Dashboard = () => {
 
 
     const storage = getStorage(app);
-    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-          const file = event.target.files?.[0];
-          if (!file) return;
+    const handleImageUpload = async () => {
+          // const file = event.target.files?.[0];
+          
+          // if (!file) return;
 
         console.log(file);
         const metadata = {
-          contentType: file?.type
+          contentType: file?.type 
         };
         const imageRef = ref(storage, 'image-store/'+file?.name);
         const uploadTask = uploadBytesResumable(imageRef, file, metadata);
 
-        uploadTask.on('state_changed',
-        (snapshot) => {
-          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log('Upload is ' + progress + '% done');
-
-          progress==100&&getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            console.log('File available at', downloadURL);
+        try {
+          await new Promise<void>((resolve, reject) => {
+              uploadTask.on('state_changed', 
+                  (snapshot) => {
+                      // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                      console.log('Upload is ' + progress + '% done');
+                  }, 
+                  (error) => {
+                      // Handle unsuccessful uploads
+                      reject(error);
+                  }, 
+                  () => {
+                      // Handle successful uploads on complete
+                      resolve();
+                  }
+              );
           });
-        }, 
-        (error) => {
-          // A full list of error codes is available at
-          // https://firebase.google.com/docs/storage/web/handle-errors
-          console.log(error)
-        },
-      );
+  
+          // Get the download URL after the upload completes
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          console.log('File available at', downloadURL);
 
+        
+          return downloadURL;
+      } catch (error) {
+          console.error('Error uploading file:', error);
+          throw error;
+      }
     };
 
+    function convertToBulletPoints(input: string): string {
+      // Split the input string based on the pattern '/n/n-'
+      const segments = input.split('/n/n-');
+      
+      // Format each segment as a bullet point
+      const bulletPoints = segments.map(segment => `• ${segment.trim()}`);
+      
+      // Join the bullet points with newlines
+      const result = bulletPoints.join('\n');
+  
+      return result;
+  }
+
     const handleGetSuggestion = async () => {
+        console.log(file);
+        const imageUrl = await handleImageUpload()
+        console.log("imageURL--->", imageUrl)
         if (!imageUrl) {
             console.error('Please upload an image first');
             return;
         }
 
         try {
-            const response = await axios.post<{ suggestion: string }>('/api/user/suggestion', { imageUrl });
+            console.log("making suggestin call")
+            const response = await axios.post<{ suggestion: string }>('/api/suggestion', { imageUrl });
+            console.log("suggestion call complete")
             console.log('Fashion suggestion:', response.data.suggestion);
             // Update suggestions state to include the new suggestion
-            setSuggestions(prevSuggestions => [...prevSuggestions, {
-                id: new Date().toISOString(),
-                text: response.data.suggestion,
-                imageUrl,
-            }]);
+            // setSuggestions(prevSuggestions => [...prevSuggestions, {
+            //     id: new Date().toISOString(),
+            //     text: response.data.suggestion,
+            //     imageUrl,
+            // }]);
+            setFashionAdvice(convertToBulletPoints(response.data.suggestion))
             // Update user credits state
             // setCredits(prevCredits => prevCredits - 1);
         } catch (error) {
