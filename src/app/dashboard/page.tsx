@@ -4,6 +4,7 @@ import axios from 'axios';
 import Image from 'next/image';
 import SideNav from '../components/shared/SideNav';
 import { handleImageUpload } from '../lib/upload';
+import { useCredits } from '../lib/CreditContext';
 
 interface Suggestion {
     id: string;
@@ -73,11 +74,18 @@ const Dashboard = () => {
       // }, 2000);
     };
 
+    const {fetchCredits } = useCredits();
 
     useEffect(() => {
         // Fetch user suggestions on initial load
         fetchUserSuggestions();
+        fetchCredits();
     }, [fashionAdvice]);
+
+    useEffect(() => {
+      // Fetch user suggestions on initial load
+      fetchCredits();
+  }, []);
 
 
     const fetchUserSuggestions = async () => {

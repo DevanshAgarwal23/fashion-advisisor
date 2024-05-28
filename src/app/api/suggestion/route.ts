@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
 
 
 
-         const suggestion = getFashionAdvice(imageUrl);
+         const suggestion = await getFashionAdvice(imageUrl);
           console.log(suggestion)
        
         if (!user) {

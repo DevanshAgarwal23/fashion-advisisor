@@ -3,12 +3,21 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import bg from "../../public/bg.png";
+import { useCredits } from "./lib/CreditContext";
+import { useEffect } from "react";
 
 export default function Home() {
   const session = useSession();
 
   const useRoute = useRouter();
   console.log(session?.data?.user);
+
+  const {fetchCredits } = useCredits();
+
+  useEffect(() => {
+      // Fetch user suggestions on initial load
+      fetchCredits();
+  }, []);
 
   return (
     // <div>

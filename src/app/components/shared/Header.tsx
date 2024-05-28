@@ -5,27 +5,20 @@ import Link from 'next/link';
 import Image from 'next/image';
 import axios from 'axios';
 import { useRouter, usePathname } from 'next/navigation';
+import { useCredits } from '@/app/lib/CreditContext';
 
 const Header: React.FC = () => {
-  const [credits, setCredits] = useState<number>(0);
+ 
   const [isOpen, setIsOpen] = useState(false);
   const useRoute = useRouter();
   const pathname = usePathname();
   const session  = useSession();
 
-  useEffect(() => {
-    // Fetch user credits on initial load
-    fetchCredits();
-}, []);
+  const { credits, fetchCredits } = useCredits();
 
-const fetchCredits = async () => {
-  try {
-      const response = await axios.get<{ credits: number }>('/api/user/credits');
-      setCredits(response.data.credits);
-  } catch (error) {
-      console.error('Error fetching user credits:', error);
-  }
-};
+    useEffect(() => {
+        fetchCredits();
+    }, [fetchCredits]);
 // console.log('vfdvfddvf', pathname, pathname==="/dashboard")
 
   return (
