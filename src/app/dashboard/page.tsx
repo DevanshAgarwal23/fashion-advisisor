@@ -1,10 +1,9 @@
 "use client"
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
-import { app } from '../../../firebaseConfig';
 import Image from 'next/image';
 import SideNav from '../components/shared/SideNav';
+import { handleImageUpload } from '../lib/upload';
 
 interface Suggestion {
     id: string;
@@ -15,7 +14,7 @@ interface Suggestion {
 const Dashboard = () => {
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     // const [imageUrl, setImageUrl] = useState<string>('');
-    const [file, setFile] = useState(null);
+    const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [fashionAdvice, setFashionAdvice] = useState<string | null>(null);
     const [displayedText, setDisplayedText] = useState<string>('');
@@ -35,23 +34,20 @@ const Dashboard = () => {
       return () => clearInterval(timer);}
     }, [fashionAdvice, speed]);
   
-    const handleDrop = useCallback((event) => {
+    const handleDrop = useCallback((event : React.DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       const droppedFiles = Array.from(event.dataTransfer.files);
       if (droppedFiles.length > 0) {
-        setFile(droppedFiles[0]);
+        setFile(droppedFiles[0] as File);
       }
     }, []);
   
     const handleFileSelect = (event : React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
+      const file = event.target.files?.[0] as File;
       setFile(file);
-      // if (selectedFiles.length > 0) {
-        
-      // }
     };
   
-    const preventDefault = (event) => event.preventDefault();
+    const preventDefault = (event : React.DragEvent<HTMLDivElement>) => event.preventDefault();
   
     const handleRemoveFile = () => {
       setFile(null);
@@ -81,7 +77,7 @@ const Dashboard = () => {
     useEffect(() => {
         // Fetch user suggestions on initial load
         fetchUserSuggestions();
-    }, []);
+    }, [fashionAdvice]);
 
 
     const fetchUserSuggestions = async () => {
@@ -95,49 +91,7 @@ const Dashboard = () => {
     };
 
 
-    const storage = getStorage(app);
-    const handleImageUpload = async () => {
-          // const file = event.target.files?.[0];
-          
-          // if (!file) return;
-
-        console.log(file);
-        const metadata = {
-          contentType: file?.type 
-        };
-        const imageRef = ref(storage, 'image-store/'+file?.name);
-        const uploadTask = uploadBytesResumable(imageRef, file, metadata);
-
-        try {
-          await new Promise<void>((resolve, reject) => {
-              uploadTask.on('state_changed', 
-                  (snapshot) => {
-                      // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-                      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                      console.log('Upload is ' + progress + '% done');
-                  }, 
-                  (error) => {
-                      // Handle unsuccessful uploads
-                      reject(error);
-                  }, 
-                  () => {
-                      // Handle successful uploads on complete
-                      resolve();
-                  }
-              );
-          });
-  
-          // Get the download URL after the upload completes
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          console.log('File available at', downloadURL);
-
-        
-          return downloadURL;
-      } catch (error) {
-          console.error('Error uploading file:', error);
-          throw error;
-      }
-    };
+    
 
     function convertToBulletPoints(input: string): string {
       // Split the input string based on the pattern '/n/n-'
@@ -150,11 +104,12 @@ const Dashboard = () => {
       const result = bulletPoints.join('\n');
   
       return result;
-  }
+   }
 
     const handleGetSuggestion = async () => {
         console.log(file);
-        const imageUrl = await handleImageUpload()
+        setLoading(true)
+        const imageUrl = await handleImageUpload(file as File)
         console.log("imageURL--->", imageUrl)
         if (!imageUrl) {
             console.error('Please upload an image first');
@@ -163,25 +118,20 @@ const Dashboard = () => {
 
         try {
             console.log("making suggestin call")
+
             const response = await axios.post<{ suggestion: string }>('/api/suggestion', { imageUrl });
             console.log("suggestion call complete")
             console.log('Fashion suggestion:', response.data.suggestion);
-            // Update suggestions state to include the new suggestion
-            // setSuggestions(prevSuggestions => [...prevSuggestions, {
-            //     id: new Date().toISOString(),
-            //     text: response.data.suggestion,
-            //     imageUrl,
-            // }]);
-            setFashionAdvice(convertToBulletPoints(response.data.suggestion))
-            // Update user credits state
-            // setCredits(prevCredits => prevCredits - 1);
+            setLoading(false)
+            setFashionAdvice(convertToBulletPoints(response.data.suggestion)) 
         } catch (error) {
+            setLoading(false)
             console.error('Error getting fashion suggestion:', error);
         }
     };
     return (
       <div  className="flex h-[calc(100vh-20vh)]  overflow-auto">
-      <SideNav setHistory={setHistory} history={suggestions} />
+      <SideNav setHistory={setHistory} history={suggestions} setFile={setFile} setFashionAdvice={setFashionAdvice}/>
        <div className="flex flex-1 m-8 flex-col md:flex-row">
         <div  className="md:w-1/4 align-center m-auto">
        {history !== null && typeof history === 'object' && !Array.isArray(history) && history?.image?<div>

@@ -26,7 +26,7 @@ async function detectClothes(imageUrl: string): Promise<boolean> {
     const objects = response.data.responses[0].localizedObjectAnnotations || [];
     
     const clothes = objects.filter((obj: any) =>
-        ['Shirt', 'Pants', 'Dress', 'Clothing'].includes(obj.name)
+        ['Shirt', 'Pants', 'Dress', 'Clothing', 'Person', 'Top'].includes(obj.name)
     );
 
     return clothes.length > 0;
@@ -44,11 +44,11 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        // const hasClothes = await detectClothes(imageUrl);
+        const hasClothes = await detectClothes(imageUrl);
 
-        // if (!hasClothes) {
-        //     return NextResponse.json({ message: 'No clothes detected in the image.' }, { status: 400 });
-        // }
+        if (!hasClothes) {
+            return NextResponse.json({ message: 'No clothes detected in the image.' }, { status: 400 });
+        }
 
         // Make a call to the GPT API to get fashion suggestions
 
