@@ -44,6 +44,17 @@ export async function POST(req: NextRequest) {
     }
 
     try {
+
+        const userEmail = session.user?.email as string;
+
+        const user = await prisma.user.findUnique({
+            where: { email: userEmail },
+        });
+
+        if(user?.credits ===0){
+            return NextResponse.json({ message: 'No credits left' }, { status: 403 });
+        }
+
         const hasClothes = await detectClothes(imageUrl);
 
         if (!hasClothes) {
@@ -79,14 +90,7 @@ export async function POST(req: NextRequest) {
 
          const suggestion = response.choices[0].message.content;
           console.log(suggestion)
-
-        // Get the user's email from the session
-        const userEmail = session.user?.email as string;
-
-        const user = await prisma.user.findUnique({
-            where: { email: userEmail },
-        });
-
+       
         if (!user) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
