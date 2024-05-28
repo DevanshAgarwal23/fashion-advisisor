@@ -1,8 +1,7 @@
 "use client";
-import { useState } from 'react';
 import Image from 'next/image';
 
-const SideNav = ({history , setHistory, setFile, setFashionAdvice }) => {
+const SideNav = ({history , setHistory , setFile, setFashionAdvice } : any) => {
   // const history = ['Item 1', 'Item 2', 'Item 3']; 
   function truncateString(str: string, maxLength: number = 15): string {
     if (str?.length > maxLength) {

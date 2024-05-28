@@ -32,6 +32,49 @@ async function detectClothes(imageUrl: string): Promise<boolean> {
     return clothes.length > 0;
 }
 
+async function getFashionAdvice(imageUrl : string, maxRetries = 3, delay = 1000) {
+    let attempt = 0;
+    
+    while (attempt < maxRetries) {
+        try {
+            const response = await openai.chat.completions.create({
+                model: "gpt-4-vision-preview",
+                messages: [
+                    {
+                        role: "user",
+                        content: [
+                            {
+                                type: "text",
+                                text: "Provide fashion advice based on the given outfit. Consider factors like color coordination, style, and accessories. Please provide specific suggestions rather than general comments or invitations for feedback. For example, suggest alternative clothing items, styling tips, or outfit combinations. In not more than 500 words."
+                            },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: imageUrl
+                                }
+                            }
+                        ],
+                    },
+                ],
+                max_tokens: 400,
+                temperature: 0.9
+            });
+            
+            return response.choices[0].message.content;
+        } catch (error) {
+            // console.error(`Attempt ${attempt + 1} failed: ${error?.message}`);
+            attempt++;
+            if (attempt < maxRetries) {
+                console.log(`Retrying in ${delay / 1000} seconds...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+                console.error('Max retries reached. Could not complete the request.');
+                throw error;
+            }
+        }
+    }
+}
+
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -63,32 +106,34 @@ export async function POST(req: NextRequest) {
 
         // Make a call to the GPT API to get fashion suggestions
 
-        const response = await openai.chat.completions.create({
-            model: "gpt-4-vision-preview",
-            messages: [
-              {
-                role: "user",
-                content: [
-                    {
-                        "type": "text",
-                        "text": "Provide fashion advice based on the given outfit. Consider factors like color coordination, style, and accessories. Please provide specific suggestions rather than general comments or invitations for feedback. For example, suggest alternative clothing items, styling tips, or outfit combinations. In not more than 500 words"
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": imageUrl
-                        }
-                    }
-                ],
-              },
-            ],
-            "max_tokens": 400,
-            "temperature": 0.9
-          });
+        // const response = await openai.chat.completions.create({
+        //     model: "gpt-4-vision-preview",
+        //     messages: [
+        //       {
+        //         role: "user",
+        //         content: [
+        //             {
+        //                 "type": "text",
+        //                 "text": "Provide fashion advice based on the given outfit. Consider factors like color coordination, style, and accessories. Please provide specific suggestions rather than general comments or invitations for feedback. For example, suggest alternative clothing items, styling tips, or outfit combinations. In not more than 500 words"
+        //             },
+        //             {
+        //                 "type": "image_url",
+        //                 "image_url": {
+        //                     "url": imageUrl
+        //                 }
+        //             }
+        //         ],
+        //       },
+        //     ],
+        //     "max_tokens": 400,
+        //     "temperature": 0.9
+        //   });
       
-        console.log(response.choices[0].message)
+        // console.log(response.choices[0].message.content)
 
-         const suggestion = response.choices[0].message.content;
+
+
+         const suggestion = getFashionAdvice(imageUrl);
           console.log(suggestion)
        
         if (!user) {
@@ -102,7 +147,7 @@ export async function POST(req: NextRequest) {
                 data: {
                     userId: user.id,
                     image : imageUrl,
-                    text: suggestion as string,
+                    text: suggestion as any,
                 },
             });
 
