@@ -13,6 +13,15 @@ export const authOptions : NextAuthOptions = {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       }),
     ],
+    pages: {
+      signIn: '/auth/signin',
+      signOut: '/auth/signout',
+    },
+    theme: {
+      colorScheme: 'auto',
+      brandColor: '#51233A',
+      logo: '/vercel.svg',
+    },
     // session:{
     //   strategy: 'jwt'
     // },

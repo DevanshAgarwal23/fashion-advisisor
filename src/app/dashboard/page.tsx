@@ -14,7 +14,7 @@ interface Suggestion {
 
 const Dashboard = () => {
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-    // const [imageUrl, setImageUrl] = useState<string>('');
+    const [imageUrl, setImageUrl] = useState<string>('');
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [fashionAdvice, setFashionAdvice] = useState<string | null>(null);
@@ -115,12 +115,14 @@ const Dashboard = () => {
    }
 
     const handleGetSuggestion = async () => {
+    
       try{
         setLoading(true)
-        const imageUrl = await handleImageUpload(file as File)
-        if (!imageUrl) {
-            console.error('Please upload an image first');
-            alert("Please upload file again")
+        const iUrl : string = await handleImageUpload(file as File);
+        setImageUrl(iUrl)
+        if (!iUrl) {
+            console.error('Please upload an image first') 
+            alert('Please upload an image first') 
             return;
         }
       }catch(error){

@@ -8,8 +8,8 @@ import { useEffect } from "react";
 
 export default function Home() {
   const session = useSession();
-
   const useRoute = useRouter();
+
   console.log(session?.data?.user);
 
   const {fetchCredits } = useCredits();
@@ -43,9 +43,23 @@ export default function Home() {
           <div className="text-3xl p-4 text-gray-800">
             Upload Your Outfit, Receive Tailored Suggestions!
           </div>
-          <button className="bg-[#51233A] hover:bg-[#51233A]/90 text-white py-2 px-4 rounded-full">
+
+          {session?.data?.user ?
+          <>
+            <button className="bg-[#51233A] hover:bg-[#51233A]/90 text-white py-2 px-4 rounded-full">
             <Link href="/dashboard"> Try me</Link>
-          </button>
+            </button>
+          </>
+
+          :
+          <>
+             <button onClick={() => useRoute.push('/api/auth/signin')} className="bg-[#51233A] hover:bg-[#51233A]/90 text-white py-2 px-4 rounded-full">
+              Try Me
+              </button>
+          </>
+        }
+          
+         
         </div>
       </div>
     </main>
