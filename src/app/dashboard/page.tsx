@@ -115,15 +115,20 @@ const Dashboard = () => {
    }
 
     const handleGetSuggestion = async () => {
-        console.log(file);
+      try{
         setLoading(true)
         const imageUrl = await handleImageUpload(file as File)
-        console.log("imageURL--->", imageUrl)
         if (!imageUrl) {
             console.error('Please upload an image first');
+            alert("Please upload file again")
             return;
         }
-
+      }catch(error){
+        console.log(error)
+        alert("Please upload file again")
+        return;
+      }
+       
         try {
             console.log("making suggestin call")
 
@@ -134,6 +139,7 @@ const Dashboard = () => {
             setFashionAdvice(convertToBulletPoints(response.data.suggestion)) 
         } catch (error) {
             setLoading(false)
+            alert("Error getting fashion suggestion,Please try again")
             console.error('Error getting fashion suggestion:', error);
         }
     };
